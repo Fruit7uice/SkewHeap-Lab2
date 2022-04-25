@@ -1,5 +1,5 @@
-data Tree a = 
-    Empty | Node a (Tree a) (Tree a) deriving(Show, Eq)
+data SkewHeap a = 
+    Empty | Node a (SkewHeap a) (SkewHeap a) deriving(Show, Eq)
 
 
-testTree = Node 4 (Node 3 Empty Empty) (Node 5 Empty Empty)
+testHeap = Node 4 (Node 3 Empty Empty) (Node 5 Empty Empty)
