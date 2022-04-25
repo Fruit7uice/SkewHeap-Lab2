@@ -6,7 +6,7 @@ data SkewHeap a =
     Empty | Node a (SkewHeap a) (SkewHeap a) deriving(Show, Eq)
 
 
-testHeap = Node 3 (Node 4 Empty Empty) (Node 5 Empty Empty)
+testHeap = Node 3 (Node 4 (Node 6 Empty Empty) Empty) (Node 5 (Node 7 Empty Empty) Empty)
 
 singleton :: a -> SkewHeap a 
 singleton x = Node x Empty Empty  
@@ -31,10 +31,13 @@ add :: Ord a => a -> SkewHeap a -> SkewHeap a
 add x t = merge (singleton x) t
 
 
-delete :: Ord a => a -> SkewHeap a -> SkewHeap a
-delete x t  
-    | lookup x t == Nothing = t
-    | otherwise = deleteMin t
-
 deleteMin :: Ord a => SkewHeap a -> SkewHeap a
 deleteMin (Node y l r) = merge l r
+
+
+delete :: Ord a => a -> SkewHeap a -> SkewHeap a
+delete x t@(Node y l r)
+    | x == y = merge l r
+    | lookup x l == Just x = (Node y (delete x l) r)
+    | lookup x r == Just x = (Node y l (delete x r))
+    | otherwise = t
