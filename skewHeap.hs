@@ -1,11 +1,15 @@
+module SKEWHEAP() where
+
+import Prelude hiding (lookup)
+
 data SkewHeap a = 
     Empty | Node a (SkewHeap a) (SkewHeap a) deriving(Show, Eq)
 
 
-testHeap = Node 4 (Node 3 Empty Empty) (Node 5 Empty Empty)
+testHeap = Node 3 (Node 4 Empty Empty) (Node 5 Empty Empty)
 
-leaf :: a -> SkewHeap a 
-leaf x = Node x Empty Empty  
+singleton :: a -> SkewHeap a 
+singleton x = Node x Empty Empty  
 
 merge :: Ord a => SkewHeap a -> SkewHeap a -> SkewHeap a
 merge t1 Empty = t1
@@ -21,3 +25,16 @@ lookup x (Node y r l)
     | x == y = Just y
     | x < y = lookup x l
     | x > y = lookup x r
+
+
+add :: Ord a => a -> SkewHeap a -> SkewHeap a
+add x t = merge (singleton x) t
+
+
+delete :: Ord a => a -> SkewHeap a -> SkewHeap a
+delete x t  
+    | lookup x t == Nothing = t
+    | otherwise = deleteMin t
+
+deleteMin :: Ord a => SkewHeap a -> SkewHeap a
+deleteMin (Node y l r) = merge l r
