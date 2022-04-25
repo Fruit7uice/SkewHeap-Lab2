@@ -1,2 +1,5 @@
 data Tree a = 
-    Empty | Node a (Tree a) a (Tree a) deriving(Show, Eq)
+    Empty | Node a (Tree a) (Tree a) deriving(Show, Eq)
+
+
+testTree = Node 4 (Node 3 Empty Empty) (Node 5 Empty Empty)
