@@ -91,14 +91,14 @@ trade' ob (b:bs) = do
 --   putStrLn ("buyers: ") 
 
 addBid :: Bid -> Orderbook -> Orderbook
-addBid x@(Buy _ _)       (Queues bb sb) = (Queues (addNode x bb) sb)
-addBid x@(Sell _ _)      (Queues bb sb) = (Queues bb (addNode x sb))
-addBid x@(NewBuy _ _ _)  (Queues bb sb) = newBid x
-addBid x@(NewSell _ _ _) (Queues bb sb) = newBid x
+addBid x@(Buy n p)       (Queues bb sb) = (Queues (addNode (BuyBid n p) bb) sb)
+addBid x@(Sell n p)      (Queues bb sb) = (Queues bb (addNode (SellBid n p) sb))
+addBid x@(NewBuy _ _ _)  ob = newBid x ob
+addBid x@(NewSell _ _ _) ob = newBid x ob
 
 newBid :: Bid -> Orderbook -> Orderbook
-newBid x@(NewBuy n p p2) (Queues bb sb) = addNode $ (Node(Buy n p2) Empty Empty) (delete (Node (Buy n p) _ _) bb)
-newBid x@(NewSell n p p2) (Queues bb sb) = addNode $ (Node(Sell n p2) Empty Empty) (delete (Node (Sell n p) _ _) sb)
+newBid x@(NewBuy n p p2) (Queues bb sb) = addNode $ (Node(BuyBid n p2) Empty Empty) (delete (Node (BuyBid n p) _ _) bb)
+newBid x@(NewSell n p p2) (Queues bb sb) = addNode $ (Node(SellBid n p2) Empty Empty) (delete (Node (SellBid n p) _ _) sb)
 
 
 tryTransaction :: Orderbook -> IO(Orderbook)
