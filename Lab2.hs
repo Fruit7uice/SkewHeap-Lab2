@@ -39,7 +39,7 @@ instance Ord BuyBid where
 sellfoo = Node(Sell "Adam" 40) Empty Empty
 buyfoo = Node(Buy "Jonte"  30) Empty Empty
 
-orderTest = Queues (Node (Buy "Adam" 40) Empty Empty) (Node (Sell "Jonte" 30) Empty Empty) 
+orderTest = Queues buyfoo sellfoo
 
 -- | Parses a bid. Incorrectly formatted bids are returned verbatim
 -- (tagged with 'Left').
@@ -93,7 +93,7 @@ orderBook = Queues Empty Empty
 trade :: [Bid] -> IO()
 trade xs = trade' orderBook xs
 
-trade' :: OrderBook -> [Bid] -> IO()
+trade' :: Orderbook -> [Bid] -> IO()
 trade' ob@(Queues bb sb) (x:xs) = do
    case x of
     (Node (Buy _ _) _ _) -> buyBidComp x ob
@@ -103,15 +103,16 @@ trade' ob@(Queues bb sb) (x:xs) = do
 
   -- compare bids bb sb
 
-buyBidComp :: Bid -> OrderBook -> IO()
-buyBidComp x@(Node(Buy n p)) ob@(Queues bb sb) = do
-    y(Node (Sell n2 _) _ _) <- getmin sb
+buyBidComp :: Bid -> Orderbook -> IO()
+buyBidComp x@(Node(Buy n p) _ _) ob@(Queues bb sb) = do
+    y@(Node (Sell n2 _) _ _) <- getMin sb
     if x >= y
       then 
         deleteMin sb
-        printStrLn(n ++ " buys a share from " ++ show n2 ++ " for " ++ p ++ "kr")
+        putStrLn(n ++ " buys a share from " ++ show n2 ++ " for " ++ p ++ "kr")
       else
-        add x bb
+        addNode x bb
+        putStrLn ("Added to orderbook")
   
 
 

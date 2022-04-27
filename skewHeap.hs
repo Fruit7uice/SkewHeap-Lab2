@@ -37,8 +37,8 @@ lookup x (Node y r l)
     | x > y = lookup x r
 
 
-add :: Ord a => a -> SkewHeap a -> SkewHeap a
-add x t = mergeMin (singleton x) t
+addNode :: Ord a => a -> SkewHeap a -> SkewHeap a
+addNode x t = mergeMin (singleton x) t
 
 
 deleteMin :: Ord a => SkewHeap a -> SkewHeap a
