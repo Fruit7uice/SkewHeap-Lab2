@@ -23,7 +23,9 @@ instance Ord SellBid where
   (SellBid _ p1) `compare` (SellBid _ p2) = p2 `compare` p1
 
 
-data Orderbook 
+
+
+data Orderbook
   = Queues (SkewHeap BuyBid) (SkewHeap SellBid)
     deriving (Show)
 
@@ -97,34 +99,43 @@ addBid x@(NewBuy _ _ _)  ob = newBid x ob
 addBid x@(NewSell _ _ _) ob = newBid x ob
 
 newBid :: Bid -> Orderbook -> Orderbook
-newBid x@(NewBuy n p p2) (Queues bb sb) = addNode $ (Node(BuyBid n p2) Empty Empty) (delete (Node (BuyBid n p) _ _) bb)
-newBid x@(NewSell n p p2) (Queues bb sb) = addNode $ (Node(SellBid n p2) Empty Empty) (delete (Node (SellBid n p) _ _) sb)
-
+newBid x@(NewBuy n p p2) (Queues bb sb) = (Queues (addNode (BuyBid n p2) (delete (BuyBid n p) bb)) sb)
+newBid x@(NewSell n p p2) (Queues bb sb) = (Queues bb (addNode (SellBid n p2) (delete (SellBid n p) sb)))
+  -- where
+  --   y = addNode $ (Node(BuyBid n p2) Empty Empty) (delete (Node (BuyBid n p) _ _) bb)
+  --   sb' = addNode $ (Node (SellBid n p2) Empty Empty) (delete (Node (SellBid n p) _ _) sb)
 
 tryTransaction :: Orderbook -> IO(Orderbook)
 tryTransaction ob@(Queues bb sb) = do
     if (x >= y)
       then do
-        printTransaction
+        printTransaction rootbb rootsb 
         let bb' = deleteRoot bb
         let sb' = deleteRoot sb 
         return (Queues bb' sb')
       else
         return ob
   where
-    x = getRoot bb 
-    y = getRoot sb
+    rootbb = getRoot bb
+    rootsb = getRoot sb
+    x = getValueBuy(rootbb) 
+    y = getValueSell(rootsb)
 
 -- getRoot bb >= getRoot sb
+getValueBuy :: BuyBid -> Integer 
+getValueBuy (BuyBid _ p) = p
+
+getValueSell :: SellBid -> Integer 
+getValueSell (SellBid _ p) = p
 
 printOrderBook :: Orderbook -> IO()
 printOrderBook ob@(Queues bb sb)
  = do
     putStrLn ("Orderbook:\n" ++ "Sellers:" ++ (show sb) ++ "\n" ++ "Buyers:" ++ (show bb))
 
-printTransaction :: Bid -> Bid -> IO()
-printTransaction x@(Node(Buy n1 p1) _ _) y@(Node(Buy n2 p2) _ _) = do
-    putStrLn(n1 ++ " buys a share from " ++ show n2 ++ " for " ++ p1 ++ "kr")
+printTransaction :: BuyBid -> SellBid -> IO()
+printTransaction x@(BuyBid n1 p1) y@(SellBid n2 p2) = do
+    putStrLn(n1 ++ " buys a share from " ++ show n2 ++ " for " ++ show p1 ++ "kr")
 -- --   -- compare bids bb sb
 
 -- buyBid' :: Bid -> Orderbook -> IO()
