@@ -22,9 +22,6 @@ instance Ord BuyBid where
 instance Ord SellBid where
   (SellBid _ p1) `compare` (SellBid _ p2) = p2 `compare` p1
 
-
-
-
 data Orderbook
   = Queues (SkewHeap BuyBid) (SkewHeap SellBid)
     deriving (Show)
@@ -101,9 +98,7 @@ addBid x@(NewSell _ _ _) ob = newBid x ob
 newBid :: Bid -> Orderbook -> Orderbook
 newBid x@(NewBuy n p p2) (Queues bb sb) = (Queues (addNode (BuyBid n p2) (delete (BuyBid n p) bb)) sb)
 newBid x@(NewSell n p p2) (Queues bb sb) = (Queues bb (addNode (SellBid n p2) (delete (SellBid n p) sb)))
-  -- where
-  --   y = addNode $ (Node(BuyBid n p2) Empty Empty) (delete (Node (BuyBid n p) _ _) bb)
-  --   sb' = addNode $ (Node (SellBid n p2) Empty Empty) (delete (Node (SellBid n p) _ _) sb)
+
 
 tryTransaction :: Orderbook -> IO(Orderbook)
 tryTransaction ob@(Queues bb sb) = do
