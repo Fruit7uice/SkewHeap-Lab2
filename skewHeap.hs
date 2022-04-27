@@ -20,12 +20,6 @@ mergeMin t1@(Node x1 left1 right1) t2@(Node x2 left2 right2)
    | x1 <= x2    = Node x1 (mergeMin t2 right1) left1
    | otherwise   = Node x2 (mergeMin t1 right2) left2
 
-mergeMax :: Ord a => SkewHeap a -> SkewHeap a -> SkewHeap a
-mergeMax t1 Empty = t1
-mergeMax Empty t2 = t2
-mergeMax t1@(Node x1 left1 right1) t2@(Node x2 left2 right2)
-   | x1 <= x2    = Node x1 (mergeMax t2 right1) left1
-   | otherwise   = Node x2 (mergeMax t1 right2) left2
 
 
 
@@ -41,8 +35,8 @@ addNode :: Ord a => a -> SkewHeap a -> SkewHeap a
 addNode x t = mergeMin (singleton x) t
 
 
-deleteMin :: Ord a => SkewHeap a -> SkewHeap a
-deleteMin (Node y l r) = mergeMin l r
+deleteRoot :: Ord a => SkewHeap a -> SkewHeap a
+deleteRoot (Node y l r) = mergeMin l r
 
 
 delete :: Ord a => a -> SkewHeap a -> SkewHeap a
@@ -52,6 +46,6 @@ delete x t@(Node y l r)
     | lookup x r == Just x = (Node y l (delete x r))
     | otherwise = t
 
-getMin :: Ord a => SkewHeap a -> Maybe (a)
-getMin Empty        = Nothing
-getMin (Node x _ _) = Just (x)
+getRoot :: Ord a => SkewHeap a -> a
+-- getRoot Empty        = Empty
+getRoot (Node x _ _) = x

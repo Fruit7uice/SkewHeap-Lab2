@@ -13,33 +13,19 @@ data Bid
 
 type Person = String
 type Price = Integer
-type BuyBid = SkewHeap Bid
-type SellBid = SkewHeap Bid
-
-data Orderbook 
-  = Queues BuyBid SellBid 
-    deriving (Show)
-
-instance Eq BuyBid where
-    Empty == Empty = 0 == 0
-    Empty == _ = 0 == 1
-    _ == Empty = 1 == 0
-    (Node (Buy _ x) _ _) == (Node(Buy _ y) _ _) =  x == y
-    (Node (Buy _ x) _ _) == (Node(Sell _ y) _ _) =  x == y
-
+data BuyBid = BuyBid Person Price deriving (Show, Eq)
+data SellBid = SellBid Person Price deriving (Show, Eq)
 
 instance Ord BuyBid where
-    Empty `compare` Empty = 0 `compare` 0
-    Empty `compare` _ = 0 `compare` 1
-    _ `compare` Empty = 1 `compare` 0
-    (Node (Buy _ x) _ _) `compare` (Node(Buy _ y) _ _) =  x `compare` y
-    (Node (Buy _ x) _ _) `compare` (Node(Sell _ y) _ _) =  x `compare` y
-    (Node (Sell _ x) _ _) `compare` (Node(Sell _ y) _ _) =  x `compare` y
+  (BuyBid _ p1) `compare` (BuyBid _ p2) = p1 `compare` p2
 
-sellfoo = Node(Sell "Adam" 40) Empty Empty
-buyfoo = Node(Buy "Jonte"  30) Empty Empty
+instance Ord SellBid where
+  (SellBid _ p1) `compare` (SellBid _ p2) = p2 `compare` p1
 
-orderTest = Queues buyfoo sellfoo
+
+data Orderbook 
+  = Queues (SkewHeap BuyBid) (SkewHeap SellBid)
+    deriving (Show)
 
 -- | Parses a bid. Incorrectly formatted bids are returned verbatim
 -- (tagged with 'Left').
@@ -88,40 +74,108 @@ main = do
   process h = trade =<< parseBids =<< hGetContents h
 
 -- | The core of the program. Takes a list of bids and executes them.
-orderBook = Queues Empty Empty
+emptyOrderBook = Queues Empty Empty
 
 trade :: [Bid] -> IO()
-trade xs = trade' orderBook xs
+trade bs = trade' emptyOrderBook bs
 
 trade' :: Orderbook -> [Bid] -> IO()
-trade' ob@(Queues bb sb) (x:xs) = do
-   case x of
-    (Node (Buy _ _) _ _) -> buyBidComp x ob
-  --   (Node (Sell _ _) _ _) -> addToSkew x sb
-  --   (Node (NewBuy _ _ _) _ _) -> newBuy
-  --   (Node (NewSell _ _ _) _ _) -> newSell
-
-  -- compare bids bb sb
-
-buyBidComp :: Bid -> Orderbook -> IO()
-buyBidComp x@(Node(Buy n p) _ _) ob@(Queues bb sb) = do
-    y@(Node (Sell n2 _) _ _) <- getMin sb
-    if x >= y
-      then 
-        deleteMin sb
-        putStrLn(n ++ " buys a share from " ++ show n2 ++ " for " ++ p ++ "kr")
-      else
-        addNode x bb
-        putStrLn ("Added to orderbook")
+trade' ob [] = printOrderBook ob
+trade' ob (b:bs) = do
+   let ob' = addBid b ob
+   ob'' <- tryTransaction ob'
+   trade' ob'' bs
   
+--   putStrLn ("Orderbook: ") 
+--   putStrLn ("Sellers: ") 
+--   putStrLn ("buyers: ") 
+
+addBid :: Bid -> Orderbook -> Orderbook
+addBid x@(Buy n p)       (Queues bb sb) = (Queues (addNode (BuyBid n p) bb) sb)
+addBid x@(Sell n p)      (Queues bb sb) = (Queues bb (addNode (SellBid n p) sb))
+addBid x@(NewBuy _ _ _)  ob = newBid x ob
+addBid x@(NewSell _ _ _) ob = newBid x ob
+
+newBid :: Bid -> Orderbook -> Orderbook
+newBid x@(NewBuy n p p2) (Queues bb sb) = addNode $ (Node(BuyBid n p2) Empty Empty) (delete (Node (BuyBid n p) _ _) bb)
+newBid x@(NewSell n p p2) (Queues bb sb) = addNode $ (Node(SellBid n p2) Empty Empty) (delete (Node (SellBid n p) _ _) sb)
 
 
+tryTransaction :: Orderbook -> IO(Orderbook)
+tryTransaction ob@(Queues bb sb) = do
+    if (x >= y)
+      then do
+        printTransaction
+        let bb' = deleteRoot bb
+        let sb' = deleteRoot sb 
+        return (Queues bb' sb')
+      else
+        return ob
+  where
+    x = getRoot bb 
+    y = getRoot sb
+
+-- getRoot bb >= getRoot sb
+
+printOrderBook :: Orderbook -> IO()
+printOrderBook ob@(Queues bb sb)
+ = do
+    putStrLn ("Orderbook:\n" ++ "Sellers:" ++ (show sb) ++ "\n" ++ "Buyers:" ++ (show bb))
+
+printTransaction :: Bid -> Bid -> IO()
+printTransaction x@(Node(Buy n1 p1) _ _) y@(Node(Buy n2 p2) _ _) = do
+    putStrLn(n1 ++ " buys a share from " ++ show n2 ++ " for " ++ p1 ++ "kr")
+-- --   -- compare bids bb sb
+
+-- buyBid' :: Bid -> Orderbook -> IO()
+-- buyBid' x@(Buy n p) ob@(Queues bb sb) = do
+--     let y = getRoot sb
+--     if x >= y
+--       then do
+--         putStrLn (show n ++ " buys a share from " ++ show (getName y) ++ " for " ++ show p ++ "kr")
+--         -- return (deleteMin sb)  -- delete node
+--       else
+--         -- addNode x bb -- Add node
+--         putStrLn ("Added to orderbook")
+--   -- where
+--   --   x' = (Node x Empty Empty)
 
 
-{-
-isEmpty :: [a] -> Bool
-isEmpty = \myList ->
-  case myList of
-    [] -> True -- if the list is empty, return true
-    _ -> False -- otherwise, return false
--}
+-- -- sellBid :: Bid -> Orderbook -> IO()
+-- -- sellBid x@(Sell n p) ob@(Queues bb sb) = do
+-- --     let y = getRoot bb
+-- --     if x <= y
+-- --       then do
+-- --         putStrLn (show n ++ " buys a share from " ++ show (getName y) ++ " for " ++ show p ++ "kr")
+-- --         -- return (deleteMin sb)  -- delete node
+-- --       else
+-- --         -- addNode x bb -- Add node
+-- --         putStrLn ("Added to orderbook")
+-- --   where
+-- --     x' = (Node x Empty Empty)
+
+
+-- -- compBid :: Bid -> SkewHeap Bid -> SkewHeap Bid -> IO()
+-- -- compBid x@(_ n p) b1 b2 = do
+-- --     let y = getRoot b2
+-- --     if x' <= y
+-- --       then do
+-- --         putStrLn (show n ++ " buys a share from " ++ getName y ++ " for " ++ show p ++ "kr")
+-- --         -- return (deleteMin sb)  -- delete node
+-- --       else
+-- --         -- addNode x bb -- Add node
+-- --         putStrLn ("Added to orderbook")
+-- --   where
+-- --     x' = (Node x Empty Empty)
+
+getName :: Bid -> String
+getName (Sell n _) = n
+getName (Buy n _) = n
+
+-- {-
+-- isEmpty :: [a] -> Bool
+-- isEmpty = \myList ->
+--   case myList of
+--     [] -> True -- if the list is empty, return true
+--     _ -> False -- otherwise, return false
+-- -}
