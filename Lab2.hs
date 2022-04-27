@@ -136,48 +136,7 @@ printOrderBook ob@(Queues bb sb)
 printTransaction :: BuyBid -> SellBid -> IO()
 printTransaction x@(BuyBid n1 p1) y@(SellBid n2 p2) = do
     putStrLn(n1 ++ " buys a share from " ++ show n2 ++ " for " ++ show p1 ++ "kr")
--- --   -- compare bids bb sb
 
--- buyBid' :: Bid -> Orderbook -> IO()
--- buyBid' x@(Buy n p) ob@(Queues bb sb) = do
---     let y = getRoot sb
---     if x >= y
---       then do
---         putStrLn (show n ++ " buys a share from " ++ show (getName y) ++ " for " ++ show p ++ "kr")
---         -- return (deleteMin sb)  -- delete node
---       else
---         -- addNode x bb -- Add node
---         putStrLn ("Added to orderbook")
---   -- where
---   --   x' = (Node x Empty Empty)
-
-
--- -- sellBid :: Bid -> Orderbook -> IO()
--- -- sellBid x@(Sell n p) ob@(Queues bb sb) = do
--- --     let y = getRoot bb
--- --     if x <= y
--- --       then do
--- --         putStrLn (show n ++ " buys a share from " ++ show (getName y) ++ " for " ++ show p ++ "kr")
--- --         -- return (deleteMin sb)  -- delete node
--- --       else
--- --         -- addNode x bb -- Add node
--- --         putStrLn ("Added to orderbook")
--- --   where
--- --     x' = (Node x Empty Empty)
-
-
--- -- compBid :: Bid -> SkewHeap Bid -> SkewHeap Bid -> IO()
--- -- compBid x@(_ n p) b1 b2 = do
--- --     let y = getRoot b2
--- --     if x' <= y
--- --       then do
--- --         putStrLn (show n ++ " buys a share from " ++ getName y ++ " for " ++ show p ++ "kr")
--- --         -- return (deleteMin sb)  -- delete node
--- --       else
--- --         -- addNode x bb -- Add node
--- --         putStrLn ("Added to orderbook")
--- --   where
--- --     x' = (Node x Empty Empty)
 
 getName :: Bid -> String
 getName (Sell n _) = n
