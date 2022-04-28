@@ -152,11 +152,12 @@ makeListBuy (Node (BuyBid n p) l r)
     l' = getValueBuy(getRoot l)
     r' = getValueBuy(getRoot r)
 
+
 makeListSell :: SkewHeap SellBid -> [String]
 makeListSell Empty = return []
 makeListSell (Node (SellBid n p) l r)
-  |  (l' /= Nothing) && (r' /= Nothing) && (l' > r') = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell r)) : makeListSell r)
-  | otherwise = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell l)) : makeListSell r)
+  |  (l' /= Nothing) && (r' /= Nothing) && (l' < r') = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell l)) : makeListSell r)
+  | otherwise = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell r)) : makeListSell l)
   where
     l' = getValueSell(getRoot l)
     r' = getValueSell(getRoot r)
