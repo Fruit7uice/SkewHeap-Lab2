@@ -102,7 +102,7 @@ newBid x@(NewSell n p p2) (Queues bb sb) = (Queues bb (addNode (SellBid n p2) (d
 
 tryTransaction :: Orderbook -> IO(Orderbook)
 tryTransaction ob@(Queues bb sb) = do
-    if (x >= y)
+    if ( x /= Nothing && y /= Nothing && x >= y)
       then do
         printTransaction rootbb rootsb 
         let bb' = deleteRoot bb
@@ -113,23 +113,25 @@ tryTransaction ob@(Queues bb sb) = do
   where
     rootbb = getRoot bb
     rootsb = getRoot sb
-    x = getValueBuy(rootbb) 
+    x = getValueBuy(rootbb)
     y = getValueSell(rootsb)
 
 -- getRoot bb >= getRoot sb
-getValueBuy :: BuyBid -> Integer 
-getValueBuy (BuyBid _ p) = p
+getValueBuy :: Maybe(BuyBid) -> Maybe(Integer) 
+getValueBuy Nothing = Nothing
+getValueBuy (Just (BuyBid _ p)) = Just p
 
-getValueSell :: SellBid -> Integer 
-getValueSell (SellBid _ p) = p
+getValueSell :: Maybe(SellBid) -> Maybe(Integer) 
+getValueSell Nothing = Nothing
+getValueSell (Just (SellBid _ p)) = Just p
 
 printOrderBook :: Orderbook -> IO()
 printOrderBook ob@(Queues bb sb)
  = do
     putStrLn ("Orderbook:\n" ++ "Sellers:" ++ (show sb) ++ "\n" ++ "Buyers:" ++ (show bb))
 
-printTransaction :: BuyBid -> SellBid -> IO()
-printTransaction x@(BuyBid n1 p1) y@(SellBid n2 p2) = do
+printTransaction :: Maybe(BuyBid) -> Maybe(SellBid) -> IO()
+printTransaction x@(Just (BuyBid n1 p1)) y@(Just (SellBid n2 p2)) = do
     putStrLn(n1 ++ " buys a share from " ++ show n2 ++ " for " ++ show p1 ++ "kr")
 
 

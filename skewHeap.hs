@@ -52,5 +52,6 @@ delete x t@(Node y l r)
 
 -- Function that returns the root of a given heap.
 
-getRoot :: Ord a => SkewHeap a -> a
-getRoot (Node x _ _) = x
+getRoot :: Ord a => SkewHeap a -> Maybe(a)
+getRoot Empty = Nothing
+getRoot (Node x _ _) = Just x
