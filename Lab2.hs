@@ -128,8 +128,8 @@ getValueSell (Just (SellBid _ p)) = Just p
 
 printOrderBook :: Orderbook -> IO()
 printOrderBook ob@(Queues bb sb) = do
-  let sbList = makeListSell sb
-  let bbList = makeListBuy bb
+  let sbList = sellToList sb
+  let bbList = buyToList bb
   putStrLn ("Orderbook:\n" ++ "Sellers: " ++ unwords sbList ++ "\n" ++ "Buyers: " ++ unwords bbList)
 
 
@@ -143,30 +143,11 @@ getName (Sell n _) = n
 getName (Buy n _) = n
 
 
-makeListBuy :: SkewHeap BuyBid -> [String]
-makeListBuy Empty = return []
-makeListBuy (Node (BuyBid n p) l r) 
-  | (l' /= Nothing) && (r' /= Nothing) && (l' < r') = ((n ++ " " ++ show p ++ ",") : (unwords (makeListBuy l)) : makeListBuy r)
-  | otherwise = ((n ++ " " ++ show p ++ ",") : (unwords (makeListBuy r)) : makeListBuy l)
-  where
-    l' = (getRoot l)
-    r' = (getRoot r) -- getValueBuy
+sellToList :: SkewHeap SellBid -> [String]
+sellToList Empty = []
+sellToList x@(Node (SellBid n p) l r) = (n ++ " " ++ show p ++ ",") : sellToList (deleteRoot x)
 
 
-makeListSell :: SkewHeap SellBid -> [String]
-makeListSell Empty = return []
-makeListSell (Node (SellBid n p) l r)
-  |  (l' /= Nothing) && (r' /= Nothing) && (l' < r') = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell l)) : makeListSell r)
-  | otherwise = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell r)) : makeListSell l)
-  where
-    l' = (getRoot l)
-    r' = (getRoot r) -- getValueSell
-  
-
--- {-
--- isEmpty :: [a] -> Bool
--- isEmpty = \myList ->
---   case myList of
---     [] -> True -- if the list is empty, return true
---     _ -> False -- otherwise, return false
--- -}
+buyToList :: SkewHeap BuyBid -> [String]
+buyToList Empty = []
+buyToList x@(Node (BuyBid n p) l r) = (n ++ " " ++ show p ++ ",") : buyToList (deleteRoot x)
