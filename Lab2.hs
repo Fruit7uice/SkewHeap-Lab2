@@ -22,6 +22,7 @@ instance Ord BuyBid where
 instance Ord SellBid where
   (SellBid _ p1) `compare` (SellBid _ p2) = p2 `compare` p1
 
+
 data Orderbook
   = Queues (SkewHeap BuyBid) (SkewHeap SellBid)
     deriving (Show)
@@ -128,7 +129,7 @@ getValueSell (Just (SellBid _ p)) = Just p
 printOrderBook :: Orderbook -> IO()
 printOrderBook ob@(Queues bb sb)
  = do
-    putStrLn ("Orderbook:\n" ++ "Sellers:" ++ (show sb) ++ "\n" ++ "Buyers:" ++ (show bb))
+    putStrLn ("Orderbook:\n" ++ "Sellers:" ++ unwords (makeListSell sb) ++ "\n" ++ "Buyers:" ++ unwords (makeListBuy bb))
 
 printTransaction :: Maybe(BuyBid) -> Maybe(SellBid) -> IO()
 printTransaction x@(Just (BuyBid n1 p1)) y@(Just (SellBid n2 p2)) = do
@@ -138,6 +139,16 @@ printTransaction x@(Just (BuyBid n1 p1)) y@(Just (SellBid n2 p2)) = do
 getName :: Bid -> String
 getName (Sell n _) = n
 getName (Buy n _) = n
+
+
+makeListBuy :: SkewHeap BuyBid -> [String]
+makeListBuy Empty = []
+makeListBuy (Node (BuyBid n p) l r) = ((n ++ " " ++ show p ++ ",") : (unwords (makeListBuy r)) : makeListBuy l)
+
+
+makeListSell :: SkewHeap SellBid -> [String]
+makeListSell Empty = []
+makeListSell (Node (SellBid n p) l r) = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell r)) : makeListSell l)
 
 -- {-
 -- isEmpty :: [a] -> Bool
