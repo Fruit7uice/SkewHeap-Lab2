@@ -135,7 +135,7 @@ printOrderBook ob@(Queues bb sb) = do
 
 printTransaction :: Maybe(BuyBid) -> Maybe(SellBid) -> IO()
 printTransaction x@(Just (BuyBid n1 p1)) y@(Just (SellBid n2 p2)) = do
-    putStrLn(n1 ++ " buys a share from " ++ show n2 ++ " for " ++ show p1 ++ "kr")
+    putStrLn(n1 ++ " buys a share from " ++ n2 ++ " for " ++ show p1 ++ "kr")
 
 
 getName :: Bid -> String
