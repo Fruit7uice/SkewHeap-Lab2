@@ -17,10 +17,10 @@ data BuyBid = BuyBid Person Price deriving (Show, Eq)
 data SellBid = SellBid Person Price deriving (Show, Eq)
 
 instance Ord BuyBid where
-  (BuyBid _ p1) `compare` (BuyBid _ p2) = p1 `compare` p2
+  (BuyBid _ p1) `compare` (BuyBid _ p2) = p2 `compare` p1
 
 instance Ord SellBid where
-  (SellBid _ p1) `compare` (SellBid _ p2) = p2 `compare` p1
+  (SellBid _ p1) `compare` (SellBid _ p2) = p1 `compare` p2
 
 
 data Orderbook
@@ -127,9 +127,11 @@ getValueSell Nothing = Nothing
 getValueSell (Just (SellBid _ p)) = Just p
 
 printOrderBook :: Orderbook -> IO()
-printOrderBook ob@(Queues bb sb)
- = do
-    putStrLn ("Orderbook:\n" ++ "Sellers:" ++ unwords (makeListSell sb) ++ "\n" ++ "Buyers:" ++ unwords (makeListBuy bb))
+printOrderBook ob@(Queues bb sb) = do
+  let sbList = makeListSell sb
+  let bbList = makeListBuy bb
+  putStrLn ("Orderbook:\n" ++ "Sellers: " ++ unwords sbList ++ "\n" ++ "Buyers: " ++ unwords bbList)
+
 
 printTransaction :: Maybe(BuyBid) -> Maybe(SellBid) -> IO()
 printTransaction x@(Just (BuyBid n1 p1)) y@(Just (SellBid n2 p2)) = do
@@ -142,13 +144,23 @@ getName (Buy n _) = n
 
 
 makeListBuy :: SkewHeap BuyBid -> [String]
-makeListBuy Empty = []
-makeListBuy (Node (BuyBid n p) l r) = ((n ++ " " ++ show p ++ ",") : (unwords (makeListBuy r)) : makeListBuy l)
-
+makeListBuy Empty = return []
+makeListBuy (Node (BuyBid n p) l r) 
+  | (l' /= Nothing) && (r' /= Nothing) && (l' > r') = ((n ++ " " ++ show p ++ ",") : (unwords (makeListBuy l)) : makeListBuy r)
+  | otherwise = ((n ++ " " ++ show p ++ ",") : (unwords (makeListBuy r)) : makeListBuy l)
+  where
+    l' = getValueBuy(getRoot l)
+    r' = getValueBuy(getRoot r)
 
 makeListSell :: SkewHeap SellBid -> [String]
-makeListSell Empty = []
-makeListSell (Node (SellBid n p) l r) = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell r)) : makeListSell l)
+makeListSell Empty = return []
+makeListSell (Node (SellBid n p) l r)
+  |  (l' /= Nothing) && (r' /= Nothing) && (l' > r') = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell r)) : makeListSell r)
+  | otherwise = ((n ++ " " ++ show p ++ ",") : (unwords (makeListSell l)) : makeListSell r)
+  where
+    l' = getValueSell(getRoot l)
+    r' = getValueSell(getRoot r)
+  
 
 -- {-
 -- isEmpty :: [a] -> Bool
