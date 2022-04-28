@@ -93,21 +93,17 @@ trade' ob (b:bs) = do
 addBid :: Bid -> Orderbook -> Orderbook
 addBid x@(Buy n p)       (Queues bb sb) = (Queues (addNode (BuyBid n p) bb) sb)
 addBid x@(Sell n p)      (Queues bb sb) = (Queues bb (addNode (SellBid n p) sb))
-addBid x@(NewBuy _ _ _)  ob = newBid x ob
-addBid x@(NewSell _ _ _) ob = newBid x ob
-
-newBid :: Bid -> Orderbook -> Orderbook
-newBid x@(NewBuy n p p2) (Queues bb sb) = (Queues (addNode (BuyBid n p2) (delete (BuyBid n p) bb)) sb)
-newBid x@(NewSell n p p2) (Queues bb sb) = (Queues bb (addNode (SellBid n p2) (delete (SellBid n p) sb)))
+addBid x@(NewBuy n old new)  (Queues bb sb) = (Queues (addNode (BuyBid n new) (delete (BuyBid n old) bb)) sb)
+addBid x@(NewSell n old new) (Queues bb sb) = (Queues bb (addNode (SellBid n new) (delete (SellBid n old) sb)))
 
 
 tryTransaction :: Orderbook -> IO(Orderbook)
 tryTransaction ob@(Queues bb sb) = do
     if ( x /= Nothing && y /= Nothing && x >= y)
       then do
-        printTransaction rootbb rootsb 
         let bb' = deleteRoot bb
         let sb' = deleteRoot sb 
+        printTransaction rootbb rootsb 
         return (Queues bb' sb')
       else
         return ob

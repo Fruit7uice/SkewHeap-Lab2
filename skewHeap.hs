@@ -52,7 +52,7 @@ deleteRoot (Node y l r) = mergeMin l r
 
 delete :: Ord a => a -> SkewHeap a -> SkewHeap a
 delete x t@(Node y l r)
-    | x == y = mergeMin l r
+    | x == y = deleteRoot t
     | lookup x l == Just x = (Node y (delete x l) r)
     | lookup x r == Just x = (Node y l (delete x r))
     | otherwise = t
