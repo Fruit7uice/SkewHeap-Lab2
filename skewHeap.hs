@@ -48,7 +48,7 @@ deleteRoot :: Ord a => SkewHeap a -> SkewHeap a
 deleteRoot (Node y l r) = mergeMin l r
 
 -- Function that deletese any given node of a heap.
--- The time-complexity for the delete-function is amortized O(log n).
+-- The time-complexity for the delete-function is amortized O(n).
 
 delete :: Ord a => a -> SkewHeap a -> SkewHeap a
 delete x Empty = Empty

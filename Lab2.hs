@@ -13,11 +13,11 @@ data Bid
 
 type Person = String
 type Price = Integer
-data BuyBid = BuyBid Person Price deriving (Show, Eq)
-data SellBid = SellBid Person Price deriving (Show, Eq)
+data BuyBid = BuyBid Person Price deriving (Show, Eq) -- Data type that is another representation of Buy bids 
+data SellBid = SellBid Person Price deriving (Show, Eq) -- Data type that is another representation of Sell bids
 
 instance Ord BuyBid where
-  (BuyBid _ p1) `compare` (BuyBid _ p2) = p2 `compare` p1
+  (BuyBid _ p1) `compare` (BuyBid _ p2) = p2 `compare` p1 -- Comparing in revers so the skewheap makes the greater values go up the tree
 
 instance Ord SellBid where
   (SellBid _ p1) `compare` (SellBid _ p2) = p1 `compare` p2
@@ -73,12 +73,14 @@ main = do
   where
   process h = trade =<< parseBids =<< hGetContents h
 
--- | The core of the program. Takes a list of bids and executes them.
-emptyOrderBook = Queues Empty Empty
 
+emptyOrderBook = Queues Empty Empty -- A empty Orderbook for initial execution. 
+
+-- | The core of the program. Takes a list of bids and executes them.
 trade :: [Bid] -> IO()
 trade bs = trade' emptyOrderBook bs
 
+-- Does the logic and calls relativ functions 
 trade' :: Orderbook -> [Bid] -> IO()
 trade' ob [] = printOrderBook ob
 trade' ob (b:bs) = do
@@ -86,14 +88,14 @@ trade' ob (b:bs) = do
    ob'' <- tryTransaction ob'
    trade' ob'' bs
   
-
+-- Pattern matches and returns a new orderbook accordingly
 addBid :: Bid -> Orderbook -> Orderbook
 addBid x@(Buy n p)       (Queues bb sb) = (Queues (addNode (BuyBid n p) bb) sb)
 addBid x@(Sell n p)      (Queues bb sb) = (Queues bb (addNode (SellBid n p) sb))
 addBid x@(NewBuy n old new)  (Queues bb sb) = (Queues (addNode (BuyBid n new) (delete (BuyBid n old) bb)) sb)
 addBid x@(NewSell n old new) (Queues bb sb) = (Queues bb (addNode (SellBid n new) (delete (SellBid n old) sb)))
 
-
+-- Tries if a transaction can take place otherwise returns the old orderbook
 tryTransaction :: Orderbook -> IO(Orderbook)
 tryTransaction ob@(Queues bb sb) = do
     if ( x /= Nothing && y /= Nothing && x >= y)
@@ -110,14 +112,16 @@ tryTransaction ob@(Queues bb sb) = do
     x = getValueBuy(rootbb)
     y = getValueSell(rootsb)
 
--- getRoot bb >= getRoot sb
+
 getValueBuy :: Maybe(BuyBid) -> Maybe(Integer) 
 getValueBuy Nothing = Nothing
 getValueBuy (Just (BuyBid _ p)) = Just p
 
+
 getValueSell :: Maybe(SellBid) -> Maybe(Integer) 
 getValueSell Nothing = Nothing
 getValueSell (Just (SellBid _ p)) = Just p
+
 
 printOrderBook :: Orderbook -> IO()
 printOrderBook ob@(Queues bb sb) = do
