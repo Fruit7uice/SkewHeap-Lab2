@@ -86,9 +86,6 @@ trade' ob (b:bs) = do
    ob'' <- tryTransaction ob'
    trade' ob'' bs
   
---   putStrLn ("Orderbook: ") 
---   putStrLn ("Sellers: ") 
---   putStrLn ("buyers: ") 
 
 addBid :: Bid -> Orderbook -> Orderbook
 addBid x@(Buy n p)       (Queues bb sb) = (Queues (addNode (BuyBid n p) bb) sb)

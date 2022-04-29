@@ -30,7 +30,7 @@ mergeMin t1@(Node x1 left1 right1) t2@(Node x2 left2 right2)
 
 lookup :: Ord a => a -> SkewHeap a -> Maybe a
 lookup _ Empty = Nothing
-lookup x (Node y r l)
+lookup x (Node y l r)
     | x == y = Just y
     | x < y = lookup x l
     | x > y = lookup x r
@@ -51,11 +51,11 @@ deleteRoot (Node y l r) = mergeMin l r
 -- The time-complexity for the delete-function is amortized O(log n).
 
 delete :: Ord a => a -> SkewHeap a -> SkewHeap a
+delete x Empty = Empty
 delete x t@(Node y l r)
     | x == y = deleteRoot t
-    | lookup x l == Just x = (Node y (delete x l) r)
-    | lookup x r == Just x = (Node y l (delete x r))
-    | otherwise = t
+    | otherwise = (Node y (delete x l) (delete x r))
+
 
 -- Function that returns the root of a given heap.
 -- The time-complexity for the getRoot-function is O(1).
